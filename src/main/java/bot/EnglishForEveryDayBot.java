@@ -1,22 +1,19 @@
 package bot;
 
+import connnection.PostgreSQLJDBS;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 @Slf4j
 public class EnglishForEveryDayBot extends TelegramLongPollingBot {
     private final String botUsername;
     private final String botToken;
-    static final String DB_URL = "jdbc:postgresql://localhost:5432/engBot";
-    static final String USER = "postgres";
-    static final String PASS = "postgrespass";
-
+    static final PostgreSQLJDBS postgreSQLJDBS = new PostgreSQLJDBS();
     public EnglishForEveryDayBot(String botUsername, String botToken){
         this.botToken = botToken;
         this.botUsername = botUsername;
@@ -34,18 +31,40 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        if (update.getMessage().getText().equals("/start")) {
-            try(Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
-                Statement stmt = conn.createStatement();
-            ) {
-                System.out.println("Inserting records into the table...");
+        String messageFromUser = update.getMessage().getText();
+        switch (messageFromUser) {
+            case "/start" -> {
                 long chatId = update.getMessage().getChatId();
+                String username = update.getMessage().getChat().getFirstName();
+                String text = "Welcome " + username +  " , to our Educational bot. Here you can  learn english with passive actions. \n" +
+                        "\n" +
+                        "What our bot can do ?\n" +
+                        "Everyday you will get one English word\n" +
+                        "You can watch example with this word\n" +
+                        "Every week after starting education you can pass mini-quiz with words that you learned in these 7 days.\n" +
+                        "\n" +
+                        "Commands:\n" +
+                        "/todaysWord\n" +
+                        "/example With Today s Word\n" +
+                        "/last Quiz\n" +
+                        "/results\n" +
+                        "//stop Learning\n" +
+                        "/continueLearning";
+                SendMessage message = new SendMessage();
+                message.setChatId(chatId);
+                message.setText(text);
 
-                String sql = "INSERT INTO users VALUES (" + chatId + ", 1, true)";
-                stmt.executeUpdate(sql);
-            } catch (SQLException e) {
-                e.printStackTrace();
+                try {
+                    execute(message); // Sending our message object to user
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+
+                postgreSQLJDBS.insertUser(chatId);
+
             }
         }
+
+
     }
 }
