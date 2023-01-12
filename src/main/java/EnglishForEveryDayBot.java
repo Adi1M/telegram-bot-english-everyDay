@@ -5,11 +5,13 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.net.http.HttpClient;
+
 @Slf4j
 public class EnglishForEveryDayBot extends TelegramLongPollingBot {
     private final String botUsername;
     private final String botToken;
-    static final PostgreSQLJDBS postgreSQLJDBS = new PostgreSQLJDBS();
+
     public EnglishForEveryDayBot(String botUsername, String botToken){
         this.botToken = botToken;
         this.botUsername = botUsername;
@@ -35,7 +37,8 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
                 case "/start" -> {
                     RegistrationService reg = new RegistrationService();
                     long chatId = update.getMessage().getChatId();
-                    if(reg.checkUser(chatId)) {
+                    System.out.println(chatId);
+                    if(!reg.checkUser(chatId)) {
                         SendMessage message = new SendMessage();
                         message.setChatId(chatId);
                         message.setText(reg.getText());

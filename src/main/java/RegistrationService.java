@@ -27,7 +27,6 @@ public class RegistrationService {
 
     public boolean checkUser(long chatId) {
         PostgreSQLJDBS postgreSQLJDBS = new PostgreSQLJDBS();
-        postgreSQLJDBS.insertUser(chatId);
         return postgreSQLJDBS.checkUser(chatId);
     }
 }
