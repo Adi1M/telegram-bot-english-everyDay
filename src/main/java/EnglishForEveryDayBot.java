@@ -37,7 +37,7 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
                 case "/start" -> {
                     RegistrationService reg = new RegistrationService();
                     long chatId = update.getMessage().getChatId();
-                    System.out.println(chatId);
+
                     if(!reg.checkUser(chatId)) {
                         SendMessage message = new SendMessage();
                         message.setChatId(chatId);

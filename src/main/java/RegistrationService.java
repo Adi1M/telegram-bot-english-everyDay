@@ -13,7 +13,6 @@ public class RegistrationService {
         Properties properties = new Properties();
         properties.load(inputStream);
         text = properties.getProperty("welcomeText");
-        System.out.println(text);
     }
 
     public void insertInDB(long chatId) {
