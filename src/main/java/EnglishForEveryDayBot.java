@@ -12,7 +12,7 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
     private final String botUsername;
     private final String botToken;
 
-    public EnglishForEveryDayBot(String botUsername, String botToken){
+    public EnglishForEveryDayBot(String botUsername, String botToken) {
         this.botToken = botToken;
         this.botUsername = botUsername;
     }
@@ -38,7 +38,7 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
                     RegistrationService reg = new RegistrationService();
                     long chatId = update.getMessage().getChatId();
 
-                    if(!reg.checkUser(chatId)) {
+                    if (!reg.checkUser(chatId)) {
                         SendMessage message = new SendMessage();
                         message.setChatId(chatId);
                         message.setText(reg.getText());
@@ -52,7 +52,7 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
                         reg.insertInDB(chatId);
                     }
                 }
-                case "/test" ->{
+                case "/test" -> {
                     long chatId = update.getMessage().getChatId();
                     TestService test = new TestService(chatId);
                     for (int i = 0; i < 7; i++) {
@@ -63,20 +63,17 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
                         sendpoll.setType("quiz");
                         sendpoll.setCorrectOptionId(test.getCorrectAnswer());
 
-
                         try {
                             execute(sendpoll);
-                        } catch (TelegramApiException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
+
                 }
             }
         }
-
     }
-
-
 
 
 }

@@ -33,7 +33,7 @@ public class TestService {
         int i = 0;
 
         while (i < 2) {
-            if(i == 1) random = random + 1;
+            if (i == 1) random = random + 1;
             if (random != 0) {
                 String translate = postgreSQLJDBS.getWord(random)[1];
                 if (!translate.equals(correctAnswer)) {
