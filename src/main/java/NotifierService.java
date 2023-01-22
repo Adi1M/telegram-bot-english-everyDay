@@ -50,7 +50,6 @@ public class NotifierService extends Thread{
                 message.setText(words[0] + " - " + words[1]);
                 engBot.execute(message);
                 postgreSQLJDBS.updateUsersDay(chatId,day+1);
-
             }
         }
     }

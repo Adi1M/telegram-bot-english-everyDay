@@ -1,11 +1,11 @@
 
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.polls.SendPoll;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.polls.Poll;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
-import java.net.http.HttpClient;
 
 @Slf4j
 public class EnglishForEveryDayBot extends TelegramLongPollingBot {
@@ -52,8 +52,31 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
                         reg.insertInDB(chatId);
                     }
                 }
+                case "/test" ->{
+                    long chatId = update.getMessage().getChatId();
+                    TestService test = new TestService(chatId);
+                    for (int i = 0; i < 7; i++) {
+                        SendPoll sendpoll = new SendPoll();
+                        sendpoll.setChatId(chatId);
+                        sendpoll.setQuestion(test.getQuestion(i));
+                        sendpoll.setOptions(test.getAnswers(i));
+                        sendpoll.setType("quiz");
+                        sendpoll.setCorrectOptionId(test.getCorrectAnswer());
+
+
+                        try {
+                            execute(sendpoll);
+                        } catch (TelegramApiException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
             }
         }
 
     }
+
+
+
+
 }
