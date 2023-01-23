@@ -5,7 +5,11 @@ import org.telegram.telegrambots.meta.api.methods.polls.SendPoll;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.polls.Poll;
+import org.telegram.telegrambots.meta.api.objects.polls.PollOption;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 public class EnglishForEveryDayBot extends TelegramLongPollingBot {
@@ -32,48 +36,39 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
 
         if (update.hasMessage() && update.getMessage().hasText()) {
             String messageFromUser = update.getMessage().getText();
+            if(!messageFromUser.contains("->")) {
+                switch (messageFromUser) {
+                    case "/start" -> {
+                        RegistrationService reg = new RegistrationService();
+                        long chatId = update.getMessage().getChatId();
 
-            switch (messageFromUser) {
-                case "/start" -> {
-                    RegistrationService reg = new RegistrationService();
-                    long chatId = update.getMessage().getChatId();
+                        if (!reg.checkUser(chatId)) {
+                            SendMessage message = new SendMessage();
+                            message.setChatId(chatId);
+                            message.setText(reg.getText());
 
-                    if (!reg.checkUser(chatId)) {
-                        SendMessage message = new SendMessage();
-                        message.setChatId(chatId);
-                        message.setText(reg.getText());
+                            try {
+                                execute(message); // Sending our message object to user
+                            } catch (TelegramApiException e) {
+                                e.printStackTrace();
+                            }
 
-                        try {
-                            execute(message); // Sending our message object to user
-                        } catch (TelegramApiException e) {
-                            e.printStackTrace();
-                        }
+                            reg.insertInDB(chatId);
 
-                        reg.insertInDB(chatId);
-                    }
-                }
-                case "/test" -> {
-                    long chatId = update.getMessage().getChatId();
-                    TestService test = new TestService(chatId);
-                    for (int i = 0; i < 7; i++) {
-                        SendPoll sendpoll = new SendPoll();
-                        sendpoll.setChatId(chatId);
-                        sendpoll.setQuestion(test.getQuestion(i));
-                        sendpoll.setOptions(test.getAnswers(i));
-                        sendpoll.setType("quiz");
-                        sendpoll.setCorrectOptionId(test.getCorrectAnswer());
-
-                        try {
-                            execute(sendpoll);
-                        } catch (Exception e) {
-                            e.printStackTrace();
                         }
                     }
-
+                    case "/test" -> {
+                        long chatId = update.getMessage().getChatId();
+                        TestExecute testExecute = new TestExecute(botUsername,botToken,chatId);
+                        testExecute.start();
+                    }
                 }
+            }else {
+                long chatId = update.getMessage().getChatId();
+                int indOfAns = messageFromUser.charAt(0) - '0';
+                ReceivingAnsFromPoll receivingAnsFromPoll = new ReceivingAnsFromPoll(botUsername,botToken,chatId);
+                receivingAnsFromPoll.receiveAns(messageFromUser.substring(5),indOfAns);
             }
         }
     }
-
-
 }

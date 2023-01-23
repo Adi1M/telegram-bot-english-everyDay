@@ -75,4 +75,33 @@ public class PostgreSQLJDBS {
         return new String[]{rs.getString("english"), rs.getString("translation")};
         else return null;
     }
+
+    @SneakyThrows
+    public void updateResults(long chatId, int week) {
+        String select = String.format("Select result from results where chatid = %d and week = %d",chatId,week);
+        ResultSet rs = stmt.executeQuery(select);
+        int result = 0;
+        if(rs.next()) {
+            result = rs.getInt("result");
+        }
+        result+=1;
+        System.out.println("result " + result);
+            String update = String.format("Update results set result = %d where chatid = %d and week = %d", result, chatId, week);
+            stmt.executeUpdate(update);
+    }
+
+    @SneakyThrows
+    public void insertToResults(long chatId, int week) {
+        String sql = String.format("INSERT INTO results VALUES (%d, 0, %d)",chatId,week);
+        stmt.executeUpdate(sql);
+    }
+
+    @SneakyThrows
+    public boolean hasTested(long chatId, int week) {
+        String select = String.format("Select * from results where chatid = %d and week = %d",chatId,week);
+        ResultSet rs = stmt.executeQuery(select);
+        return rs.next();
+    }
+
+
 }

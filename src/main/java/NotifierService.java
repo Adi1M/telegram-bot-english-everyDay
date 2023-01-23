@@ -1,4 +1,5 @@
 import lombok.SneakyThrows;
+import org.telegram.telegrambots.meta.api.methods.polls.SendPoll;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.time.LocalDateTime;
@@ -37,8 +38,8 @@ public class NotifierService extends Thread{
                 timeToSLeep = diff;
 
             }
-
             Thread.sleep(timeToSLeep);
+
             PostgreSQLJDBS postgreSQLJDBS = new PostgreSQLJDBS();
             ArrayList<Long> chatIds = postgreSQLJDBS.getChatIds();
             EnglishForEveryDayBot engBot = new EnglishForEveryDayBot(botUsername,botToken);
@@ -49,6 +50,8 @@ public class NotifierService extends Thread{
                 String[] words = postgreSQLJDBS.getWord(day);
                 message.setText(words[0] + " - " + words[1]);
                 engBot.execute(message);
+                SendPoll poll = new SendPoll();
+
                 postgreSQLJDBS.updateUsersDay(chatId,day+1);
             }
         }

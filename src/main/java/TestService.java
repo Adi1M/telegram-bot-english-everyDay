@@ -19,9 +19,13 @@ public class TestService {
 
         for (int i = days - 6; i <= days; i++) {
             String[] words = postgreSQLJDBS.getWord(i);
-            wordsForQuestions.add(words[0]);
-            correctAnswers.add(words[1]);
+            wordsForQuestions.add(words[1]);
+            correctAnswers.add(words[0]);
         }
+    }
+
+    public boolean isItRightDay() {
+        return days % 7 == 0;
     }
 
     public List<String> getAnswers(int in) {
@@ -35,7 +39,7 @@ public class TestService {
         while (i < 2) {
             if (i == 1) random = random + 1;
             if (random != 0) {
-                String translate = postgreSQLJDBS.getWord(random)[1];
+                String translate = postgreSQLJDBS.getWord(random)[0];
                 if (!translate.equals(correctAnswer)) {
                     answers.add(translate);
                     i++;
@@ -44,8 +48,6 @@ public class TestService {
                 random = (int) (Math.random() * days);
             }
         }
-
-        Collections.shuffle(answers);
 
         index = answers.indexOf(correctAnswer);
 
