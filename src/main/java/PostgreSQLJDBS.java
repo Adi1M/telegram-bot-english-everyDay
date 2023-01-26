@@ -112,4 +112,33 @@ public class PostgreSQLJDBS {
         ResultSet rs = stmt.executeQuery(select);
         return rs.next();
     }
+
+    @SneakyThrows
+    public int lastTestResult(long chatId, int week){
+        String select = String.format("Select result from results where chatid = %d and week = %d",chatId,week);
+        ResultSet res = stmt.executeQuery(select);
+        int result = 0;
+        if (res.next()){
+            result = res.getInt("result");
+        }else{
+            result = -1;
+        }
+
+        return result;
+    }
+
+    @SneakyThrows
+    public int getTotalResult(long chatId){
+        String select = String.format("Select sum(result) as sum from results where chatid = %d",chatId);
+        ResultSet res = stmt.executeQuery(select);
+        int result = 0;
+        if (res.next()){
+            result = res.getInt("sum");
+        }else{
+            result = -1;
+        }
+
+        return result;
+    }
+
 }

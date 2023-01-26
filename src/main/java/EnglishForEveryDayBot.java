@@ -56,6 +56,34 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
                         TestExecute testExecute = new TestExecute(this.botUsername,this.botToken,chatId);
                         testExecute.start();
                     }
+                    case "/lastTest" -> {
+                        long chatId = update.getMessage().getChatId();
+                        Results results = new Results(chatId);
+
+                        SendMessage message = new SendMessage();
+                        message.setChatId(chatId);
+                        message.setText(results.getLastResult());
+
+                        try {
+                            execute(message);
+                        } catch (TelegramApiException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    case "/totalScore" -> {
+                        long chatId = update.getMessage().getChatId();
+                        Results results = new Results(chatId);
+
+                        SendMessage message = new SendMessage();
+                        message.setChatId(chatId);
+                        message.setText(results.getTotalResult());
+
+                        try {
+                            execute(message);
+                        } catch (TelegramApiException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }else {
                 long chatId = update.getMessage().getChatId();
