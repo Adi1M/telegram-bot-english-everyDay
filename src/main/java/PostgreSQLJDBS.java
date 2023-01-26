@@ -112,4 +112,13 @@ public class PostgreSQLJDBS {
         ResultSet rs = stmt.executeQuery(select);
         return rs.next();
     }
+
+    @SneakyThrows
+    public String getExample(long chatId){
+        String select = "Select * from words where id = " + getUsersDay(chatId);
+        ResultSet rs = stmt.executeQuery(select);
+        if(rs.next())
+        return rs.getString("examples");
+        else return "";
+    }
 }

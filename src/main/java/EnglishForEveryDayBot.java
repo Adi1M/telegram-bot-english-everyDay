@@ -10,10 +10,12 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 public class EnglishForEveryDayBot extends TelegramLongPollingBot {
     private final String botUsername;
     private final String botToken;
+    SendMessage message;
 
     public EnglishForEveryDayBot(String botUsername, String botToken) {
         this.botToken = botToken;
         this.botUsername = botUsername;
+        this.message = new SendMessage();
     }
 
     @Override
@@ -37,7 +39,6 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
                         long chatId = update.getMessage().getChatId();
 
                         if (!reg.checkUser(chatId)) {
-                            SendMessage message = new SendMessage();
                             message.setChatId(chatId);
                             message.setText(reg.text);
 
@@ -55,13 +56,29 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
                         long chatId = update.getMessage().getChatId();
                         TestExecute testExecute = new TestExecute(this.botUsername,this.botToken,chatId);
                         testExecute.start();
+                        System.out.println("Lox");
+                    }
+                    case "/example" -> {
+                        long chatId = update.getMessage().getChatId();
+                        ExampleService exampleService = new ExampleService(botUsername, botToken, chatId);
+                        exampleService.getExample();
                     }
                 }
-            }else {
-                long chatId = update.getMessage().getChatId();
-                int indOfAns = messageFromUser.charAt(0) - '0';
-                ReceivingAnswer receivingAnsFromPoll = new ReceivingAnswer(chatId);
-                receivingAnsFromPoll.receiveAnswer(messageFromUser.substring(5),indOfAns);
+            }
+        }else if(update.hasCallbackQuery()) {
+            long chatId = update.getCallbackQuery().getMessage().getChatId();
+            String answer = update.getCallbackQuery().getData();
+            int indOfAns = answer.charAt(0) - '0';
+            ReceivingAnswer receivingAnsFromPoll = new ReceivingAnswer(chatId);
+
+            if(receivingAnsFromPoll.receiveAnswer(answer.substring(2),indOfAns)){
+                message.setText("");
+                try {
+                    execute(message);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+
             }
         }
     }

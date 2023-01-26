@@ -1,7 +1,9 @@
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.ArrayList;
@@ -50,14 +52,11 @@ public class TestExecute extends Thread {
             this.postgreSQLJDBS.insertToResults(this.chatId,week);
             for(int i = 1; i <= 8; i++) {
                 if(i < 8) {
-                    sendCustomKeyboard(i, this.chatId, this.test.getQuestion(i - 1), this.test.getAnswers(i - 1));
+                    System.out.println(chatId + " " + i);
+                    sendInlineKeyboard(i, this.chatId, this.test.getQuestion(i - 1), this.test.getAnswers(i - 1));
                 }else {
                     this.message.setChatId(this.chatId);
                     this.message.setText("Test is over! Thank you!");
-                    ReplyKeyboardRemove removeMarkup = new ReplyKeyboardRemove();
-                    removeMarkup.setRemoveKeyboard(true);
-                    removeMarkup.setSelective(true);
-                    this.message.setReplyMarkup(removeMarkup);
                     try {
                         this.engBot.execute(this.message);
                     } catch (TelegramApiException e) {
@@ -70,22 +69,24 @@ public class TestExecute extends Thread {
 
     }
 
-    public void sendCustomKeyboard(int index, long chatId, String questions, List<String> answers) {
-        EnglishForEveryDayBot engBot = new EnglishForEveryDayBot(this.botUsername,this.botToken);
+    public void sendInlineKeyboard(int index, long chatId, String question, List<String> answers) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
-        message.setText(questions);
+        message.setText(question);
 
-        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-        List<KeyboardRow> keyboard = new ArrayList<>();
-        KeyboardRow row = new KeyboardRow();
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+        List<InlineKeyboardButton> Buttons = new ArrayList<InlineKeyboardButton>();
         for (String answer : answers) {
-            row.add(index + " -> " + answer);
+            InlineKeyboardButton newButton = new InlineKeyboardButton();
+            newButton.setText(answer);
+            newButton.setCallbackData(index + "." + answer);
+            Buttons.add(newButton);
         }
-        keyboard.add(row);
-        keyboardMarkup.setKeyboard(keyboard);
+        keyboard.add(Buttons);
+        inlineKeyboardMarkup.setKeyboard(keyboard);
+        message.setReplyMarkup(inlineKeyboardMarkup);
 
-        message.setReplyMarkup(keyboardMarkup);
         try {
             engBot.execute(message);
         } catch (TelegramApiException e) {
