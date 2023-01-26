@@ -114,11 +114,31 @@ public class PostgreSQLJDBS {
     }
 
     @SneakyThrows
-    public String getExample(long chatId){
-        String select = "Select * from words where id = " + getUsersDay(chatId);
-        ResultSet rs = stmt.executeQuery(select);
-        if(rs.next())
-        return rs.getString("examples");
-        else return "";
+    public int lastTestResult(long chatId, int week){
+        String select = String.format("Select result from results where chatid = %d and week = %d",chatId,week);
+        ResultSet res = stmt.executeQuery(select);
+        int result = 0;
+        if (res.next()){
+            result = res.getInt("result");
+        }else{
+            result = -1;
+        }
+
+        return result;
     }
+
+    @SneakyThrows
+    public int getTotalResult(long chatId){
+        String select = String.format("Select sum(result) as sum from results where chatid = %d",chatId);
+        ResultSet res = stmt.executeQuery(select);
+        int result = 0;
+        if (res.next()){
+            result = res.getInt("sum");
+        }else{
+            result = -1;
+        }
+
+        return result;
+    }
+
 }
