@@ -7,22 +7,32 @@ import java.util.Properties;
 
 public class PostgreSQLJDBS {
     private Statement stmt = null;
+    private static PostgreSQLJDBS postgreSQLJDBS;
 
-    public PostgreSQLJDBS() {
+    private PostgreSQLJDBS() {
+        Properties properties = getProperties();
+        String DB_URL = properties.getProperty("url");
+        String USER = properties.getProperty("user");
+        String PASS = properties.getProperty("password");
         try {
-            InputStream inputStream = RegistrationService.class.getClassLoader().getResourceAsStream("database.properties");
-            Properties properties = new Properties();
-            properties.load(inputStream);
-            String DB_URL = properties.getProperty("url");
-            String USER = properties.getProperty("user");
-            String PASS = properties.getProperty("password");
             Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
-            stmt = conn.createStatement();
-        } catch (Exception e) {
+            this.stmt = conn.createStatement();
+        } catch (SQLException e) {
             e.printStackTrace();
-            System.err.println(e.getClass().getName() + ": " + e.getMessage());
-            System.exit(0);
         }
+    }
+
+    public static PostgreSQLJDBS getInstance() {
+        if (postgreSQLJDBS == null) return new PostgreSQLJDBS();
+        else return postgreSQLJDBS;
+    }
+
+    @SneakyThrows
+    public Properties getProperties() {
+        InputStream inputStream = Registration.class.getClassLoader().getResourceAsStream("database.properties");
+        Properties properties = new Properties();
+        properties.load(inputStream);
+        return properties;
     }
 
     @SneakyThrows
@@ -102,6 +112,4 @@ public class PostgreSQLJDBS {
         ResultSet rs = stmt.executeQuery(select);
         return rs.next();
     }
-
-
 }

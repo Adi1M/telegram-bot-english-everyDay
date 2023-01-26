@@ -1,24 +1,26 @@
 import lombok.SneakyThrows;
-import org.telegram.telegrambots.meta.api.methods.polls.SendPoll;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.polls.Poll;
-import org.telegram.telegrambots.meta.api.objects.polls.PollAnswer;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class TestExecute extends Thread {
-
+    private final PostgreSQLJDBS postgreSQLJDBS;
     private final String botUsername;
     private final String botToken;
-    private long chatId;
+    private final long chatId;
+    private final EnglishForEveryDayBot engBot;
+    private final TestCreator test;
+    private final SendMessage message;
 
     TestExecute(String botUsername, String botToken,long chatId) {
+        this.test = new TestCreator(chatId);
+        this.engBot = new EnglishForEveryDayBot(botUsername,botToken);
+        this.postgreSQLJDBS = PostgreSQLJDBS.getInstance();
+        this.message = new SendMessage();
         this.botUsername = botUsername;
         this.botToken = botToken;
         this.chatId = chatId;
@@ -27,44 +29,37 @@ public class TestExecute extends Thread {
     @SneakyThrows
     @Override
     public void run() {
-        TestService test = new TestService(chatId);
-        EnglishForEveryDayBot engBot = new EnglishForEveryDayBot(botUsername,botToken);
-        PostgreSQLJDBS postgreSQLJDBS = new PostgreSQLJDBS();
-        int week = postgreSQLJDBS.getUsersDay(chatId)/7;
-        if(!test.isItRightDay()) {
-            SendMessage message = new SendMessage();
-            message.setText("Today is not for tests just chill!");
-            message.setChatId(chatId);
+        int week = this.postgreSQLJDBS.getUsersDay(this.chatId)/7;
+        if(!this.test.isItRightDay()) {
+            this.message.setText("Today is not for tests just chill!");
+            this.message.setChatId(chatId);
             try {
-                engBot.execute(message);
+                this.engBot.execute(this.message);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }else if(postgreSQLJDBS.hasTested(chatId,week)) {
-            SendMessage message = new SendMessage();
-            message.setText("You have tested!");
-            message.setChatId(chatId);
+        }else if(this.postgreSQLJDBS.hasTested(this.chatId,week)) {
+            this.message.setText("You have tested!");
+            this.message.setChatId(chatId);
             try {
-                engBot.execute(message);
+                this.engBot.execute(this.message);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         } else {
-            postgreSQLJDBS.insertToResults(chatId,week);
+            this.postgreSQLJDBS.insertToResults(this.chatId,week);
             for(int i = 1; i <= 8; i++) {
                 if(i < 8) {
-                    sendCustomKeyboard(i, chatId, test.getQuestion(i - 1), test.getAnswers(i - 1));
+                    sendCustomKeyboard(i, this.chatId, this.test.getQuestion(i - 1), this.test.getAnswers(i - 1));
                 }else {
-                    SendMessage message = new SendMessage();
-                    message.setChatId(chatId);
-                    message.setText("Test is over! Thank you!");
-                    ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-                    List<KeyboardRow> keyboard = new ArrayList<>();
-                    keyboardMarkup.setKeyboard(keyboard);
-                    message.setReplyMarkup(keyboardMarkup);
-
+                    this.message.setChatId(this.chatId);
+                    this.message.setText("Test is over! Thank you!");
+                    ReplyKeyboardRemove removeMarkup = new ReplyKeyboardRemove();
+                    removeMarkup.setRemoveKeyboard(true);
+                    removeMarkup.setSelective(true);
+                    this.message.setReplyMarkup(removeMarkup);
                     try {
-                        engBot.execute(message);
+                        this.engBot.execute(this.message);
                     } catch (TelegramApiException e) {
                         e.printStackTrace();
                     }
@@ -76,7 +71,7 @@ public class TestExecute extends Thread {
     }
 
     public void sendCustomKeyboard(int index, long chatId, String questions, List<String> answers) {
-        EnglishForEveryDayBot engBot = new EnglishForEveryDayBot(botUsername,botToken);
+        EnglishForEveryDayBot engBot = new EnglishForEveryDayBot(this.botUsername,this.botToken);
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
         message.setText(questions);
@@ -89,6 +84,7 @@ public class TestExecute extends Thread {
         }
         keyboard.add(row);
         keyboardMarkup.setKeyboard(keyboard);
+
         message.setReplyMarkup(keyboardMarkup);
         try {
             engBot.execute(message);
@@ -97,26 +93,4 @@ public class TestExecute extends Thread {
         }
     }
 
-//    public void sendInlineKeyboard(int index, long chatId, String question, List<String> answers) {
-//        EnglishForEveryDayBot engBot = new EnglishForEveryDayBot(botUsername,botToken);
-//        SendMessage message = new SendMessage();
-//        message.setChatId(chatId);
-//        message.setText(question);
-//
-//        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-//        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
-//        List<InlineKeyboardButton> Buttons = new ArrayList<>();
-//        for (String answer : answers) {
-//            Buttons.add(new InlineKeyboardButton(index + " -> " + answer));
-//        }
-//        keyboard.add(Buttons);
-//        inlineKeyboardMarkup.setKeyboard(keyboard);
-//        message.setReplyMarkup(inlineKeyboardMarkup);
-//
-//        try {
-//            engBot.execute(message);
-//        } catch (TelegramApiException e) {
-//            e.printStackTrace();
-//        }
-//    }
 }

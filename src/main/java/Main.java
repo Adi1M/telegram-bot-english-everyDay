@@ -18,7 +18,6 @@ public class Main {
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
         telegramBotsApi.registerBot(new EnglishForEveryDayBot(botUsername, botToken));
 
-        NotifierService notifierService = new NotifierService(botUsername,botToken);
-        notifierService.start();
+        NotifierService.getInstance(botToken,botUsername).start();
     }
 }

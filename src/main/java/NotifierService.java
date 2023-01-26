@@ -1,5 +1,4 @@
 import lombok.SneakyThrows;
-import org.telegram.telegrambots.meta.api.methods.polls.SendPoll;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.time.LocalDateTime;
@@ -7,25 +6,35 @@ import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 
 public class NotifierService extends Thread{
-
+    private static NotifierService notifierService;
+    private final PostgreSQLJDBS postgreSQLJDBS;
     private final String botUsername;
     private final String botToken;
+    private final SendMessage message;
 
-    NotifierService(String botUsername, String botToken) {
+    private NotifierService(String botUsername, String botToken) {
+        this.message = new SendMessage();
+        this.postgreSQLJDBS = PostgreSQLJDBS.getInstance();
         this.botUsername = botUsername;
         this.botToken = botToken;
+    }
+
+    public static NotifierService getInstance(String botToken, String botUsername) {
+        if (notifierService == null) return new NotifierService(botToken, botUsername);
+        else return notifierService;
     }
 
     @SneakyThrows
     @Override
     public void run() {
+
         while (true) {
             LocalDateTime now = LocalDateTime.now();
 
-            int nTimeHour = 11;
-            int nTimeMinute = 00;
+            int timeHour = 11;
+            int timeMinute = 00;
 
-            long needms = nTimeHour*60*60*1000 + nTimeMinute*60*1000;
+            long needms = timeHour*60*60*1000 + timeMinute*60*1000;
             long curr = now.getLong(ChronoField.MILLI_OF_DAY);
 
             long diff = Math.abs(needms - curr);
@@ -40,19 +49,16 @@ public class NotifierService extends Thread{
             }
             Thread.sleep(timeToSLeep);
 
-            PostgreSQLJDBS postgreSQLJDBS = new PostgreSQLJDBS();
-            ArrayList<Long> chatIds = postgreSQLJDBS.getChatIds();
-            EnglishForEveryDayBot engBot = new EnglishForEveryDayBot(botUsername,botToken);
+            ArrayList<Long> chatIds = this.postgreSQLJDBS.getChatIds();
+            EnglishForEveryDayBot engBot = new EnglishForEveryDayBot(this.botUsername,this.botToken);
             for(long chatId: chatIds) {
-                int day = postgreSQLJDBS.getUsersDay(chatId);
-                SendMessage message = new SendMessage();
-                message.setChatId(chatId);
-                String[] words = postgreSQLJDBS.getWord(day);
-                message.setText(words[0] + " - " + words[1]);
-                engBot.execute(message);
-                SendPoll poll = new SendPoll();
+                int day = this.postgreSQLJDBS.getUsersDay(chatId);
+                this.message.setChatId(chatId);
+                String[] words = this.postgreSQLJDBS.getWord(day);
+                this.message.setText(words[0] + " - " + words[1]);
+                engBot.execute(this.message);
 
-                postgreSQLJDBS.updateUsersDay(chatId,day+1);
+                this.postgreSQLJDBS.updateUsersDay(chatId,day+1);
             }
         }
     }
