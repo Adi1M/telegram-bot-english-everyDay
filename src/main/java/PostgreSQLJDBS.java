@@ -114,6 +114,15 @@ public class PostgreSQLJDBS {
     }
 
     @SneakyThrows
+    public String getExample(long chatId){
+        String select = "Select * from words where id = " + getUsersDay(chatId);
+        ResultSet rs = stmt.executeQuery(select);
+        if(rs.next())
+            return rs.getString("examples");
+        else return "";
+    }
+
+    @SneakyThrows
     public int lastTestResult(long chatId, int week){
         String select = String.format("Select result from results where chatid = %d and week = %d",chatId,week);
         ResultSet res = stmt.executeQuery(select);

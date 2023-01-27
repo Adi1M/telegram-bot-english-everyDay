@@ -4,7 +4,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
+import com.vdurmont.emoji.EmojiParser;
 
 @Slf4j
 public class EnglishForEveryDayBot extends TelegramLongPollingBot {
@@ -56,7 +56,6 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
                         long chatId = update.getMessage().getChatId();
                         TestExecute testExecute = new TestExecute(this.botUsername,this.botToken,chatId);
                         testExecute.start();
-                        System.out.println("Lox");
                     }
                     case "/example" -> {
                         long chatId = update.getMessage().getChatId();
@@ -98,15 +97,18 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
             String answer = update.getCallbackQuery().getData();
             int indOfAns = answer.charAt(0) - '0';
             ReceivingAnswer receivingAnsFromPoll = new ReceivingAnswer(chatId);
-
+            String checkEmoji = "";
             if(receivingAnsFromPoll.receiveAnswer(answer.substring(2),indOfAns)){
-                message.setText("");
-                try {
-                    execute(message);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
+                checkEmoji = EmojiParser.parseToUnicode(":white_check_mark:");
+            }else checkEmoji = EmojiParser.parseToUnicode(":x:");
 
+            message.setText(checkEmoji);
+            message.setChatId(chatId);
+
+            try {
+                execute(message);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
             }
         }
     }

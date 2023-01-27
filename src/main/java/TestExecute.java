@@ -52,7 +52,6 @@ public class TestExecute extends Thread {
             this.postgreSQLJDBS.insertToResults(this.chatId,week);
             for(int i = 1; i <= 8; i++) {
                 if(i < 8) {
-                    System.out.println(chatId + " " + i);
                     sendInlineKeyboard(i, this.chatId, this.test.getQuestion(i - 1), this.test.getAnswers(i - 1));
                 }else {
                     this.message.setChatId(this.chatId);

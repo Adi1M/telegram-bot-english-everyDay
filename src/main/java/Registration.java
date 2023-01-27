@@ -8,10 +8,16 @@ public class Registration {
 
     @SneakyThrows
     Registration() {
+        Properties properties = getProperties();
+        this.text = properties.getProperty("welcomeText");
+    }
+
+    @SneakyThrows
+    public Properties getProperties() {
         InputStream inputStream = Registration.class.getClassLoader().getResourceAsStream("bot_resources.properties");
         Properties properties = new Properties();
         properties.load(inputStream);
-        this.text = properties.getProperty("welcomeText");
+        return properties;
     }
 
     public void insertInDB(long chatId) {
