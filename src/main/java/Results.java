@@ -1,16 +1,14 @@
 public class Results {
-    private final long chatId;
     PostgreSQLJDBS postgreSQLJDBS;
 
-    public Results(long chatId) {
+    public Results() {
         postgreSQLJDBS = PostgreSQLJDBS.getInstance();
-        this.chatId = chatId;
     }
 
-    public String getLastResult() {
-        int day = this.postgreSQLJDBS.getUsersDay(this.chatId);
+    public String getLastResult(long chatId) {
+        int day = this.postgreSQLJDBS.getUsersDay(chatId);
         int week = day / 7;
-        int userResult = this.postgreSQLJDBS.lastTestResult(chatId, week - 1);
+        int userResult = postgreSQLJDBS.getLastTestResult(chatId, week - 1);
 
         if (userResult == -1) {
             return "You didn't take the test last week";
@@ -19,14 +17,7 @@ public class Results {
         }
     }
 
-    public String getTotalResult(){
-        int day = this.postgreSQLJDBS.getUsersDay(this.chatId);
-        int userResult = this.postgreSQLJDBS.getTotalResult(chatId);
-
-        if (userResult == -1){
-            return "You didn't take the test";
-        }else{
-            return "Your total result " + userResult + "/" + day;
-        }
+    public String getTotalResult(long chatId){
+        return postgreSQLJDBS.getTotalResult(chatId);
     }
 }

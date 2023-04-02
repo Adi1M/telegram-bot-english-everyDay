@@ -1,5 +1,4 @@
 import lombok.SneakyThrows;
-
 import java.io.InputStream;
 import java.sql.*;
 import java.util.ArrayList;
@@ -36,14 +35,13 @@ public class PostgreSQLJDBS {
     }
 
     @SneakyThrows
-    public void insertUser(long chatId){
-            String sql = "INSERT INTO users VALUES (" + chatId + ", 1, true)";
-            stmt.executeUpdate(sql);
+    public void insertUser(long chatId) {
+        stmt.executeUpdate(String.format("INSERT INTO users VALUES (%d, 1, true)", chatId));
     }
 
     @SneakyThrows
     public boolean checkUser(long chatId) {
-        String userExists = String.format("SELECT chatid from users where chatid = %d",chatId);
+        String userExists = String.format("SELECT chatid from users where chatid = %d", chatId);
         ResultSet rs = stmt.executeQuery(userExists);
         boolean t = rs.next();
 
@@ -56,16 +54,16 @@ public class PostgreSQLJDBS {
         String getChatId = "SELECT chatid from users";
         ResultSet rs = stmt.executeQuery(getChatId);
         while (rs.next()) {
-            res.add((long)rs.getInt("chatid"));
+            res.add((long) rs.getInt("chatid"));
         }
         return res;
     }
 
     @SneakyThrows
     public int getUsersDay(long chatId) {
-        String userExists = String.format("SELECT day from users where chatid = %d",chatId);
+        String userExists = String.format("SELECT day from users where chatid = %d", chatId);
         ResultSet rs = stmt.executeQuery(userExists);
-        if(rs.next()) {
+        if (rs.next()) {
             return rs.getInt("day");
         }
         return 1;
@@ -73,63 +71,61 @@ public class PostgreSQLJDBS {
 
     @SneakyThrows
     public void updateUsersDay(long chatId, int day) {
-        String update = String.format("Update users set day = %s where chatid = %d",day,chatId);
+        String update = String.format("Update users set day = %s where chatid = %d", day, chatId);
         stmt.executeUpdate(update);
     }
 
     @SneakyThrows
-    public String[] getWord(int day){
-        String EngWordReq = "Select english,translation from words where id = " + day;
-        ResultSet rs = stmt.executeQuery(EngWordReq);
-        if(rs.next())
-        return new String[]{rs.getString("english"), rs.getString("translation")};
+    public String[] getWord(int day) {
+        ResultSet rs = stmt.executeQuery(String.format("Select english,translation from words where id = %d", day));
+        if (rs.next())
+            return new String[]{rs.getString("english"), rs.getString("translation")};
         else return null;
     }
 
     @SneakyThrows
     public void updateResults(long chatId, int week) {
-        String select = String.format("Select result from results where chatid = %d and week = %d",chatId,week);
+        String select = String.format("Select result from results where chatid = %d and week = %d", chatId, week);
         ResultSet rs = stmt.executeQuery(select);
         int result = 0;
-        if(rs.next()) {
+        if (rs.next()) {
             result = rs.getInt("result");
         }
-        result+=1;
+        result += 1;
         System.out.println("result " + result);
-            String update = String.format("Update results set result = %d where chatid = %d and week = %d", result, chatId, week);
-            stmt.executeUpdate(update);
+        String update = String.format("Update results set result = %d where chatid = %d and week = %d", result, chatId, week);
+        stmt.executeUpdate(update);
     }
 
     @SneakyThrows
     public void insertToResults(long chatId, int week) {
-        String sql = String.format("INSERT INTO results VALUES (%d, 0, %d)",chatId,week);
+        String sql = String.format("INSERT INTO results VALUES (%d, 0, %d)", chatId, week);
         stmt.executeUpdate(sql);
     }
 
     @SneakyThrows
     public boolean hasTested(long chatId, int week) {
-        String select = String.format("Select * from results where chatid = %d and week = %d",chatId,week);
+        String select = String.format("Select * from results where chatid = %d and week = %d", chatId, week);
         ResultSet rs = stmt.executeQuery(select);
         return rs.next();
     }
 
     @SneakyThrows
-    public String getExample(long chatId){
-        String select = "Select * from words where id = " + getUsersDay(chatId);
-        ResultSet rs = stmt.executeQuery(select);
-        if(rs.next())
+    public String getExample(long chatId) {
+        ResultSet rs = stmt.executeQuery(String.format("Select * from words where id = %d", getUsersDay(chatId)));
+        if (rs.next())
             return rs.getString("examples");
         else return "";
     }
 
     @SneakyThrows
-    public int lastTestResult(long chatId, int week){
-        String select = String.format("Select result from results where chatid = %d and week = %d",chatId,week);
+    public int getLastTestResult(long chatId, int week) {
+        String select = String.format("Select result from results where chatid = %d and week = %d", chatId, week);
         ResultSet res = stmt.executeQuery(select);
         int result = 0;
-        if (res.next()){
+        if (res.next()) {
             result = res.getInt("result");
-        }else{
+        } else {
             result = -1;
         }
 
@@ -137,17 +133,19 @@ public class PostgreSQLJDBS {
     }
 
     @SneakyThrows
-    public int getTotalResult(long chatId){
-        String select = String.format("Select sum(result) as sum from results where chatid = %d",chatId);
+    public String getTotalResult(long chatId) {
+        String select = String.format("Select week, result from results where chatid = %d", chatId);
         ResultSet res = stmt.executeQuery(select);
-        int result = 0;
-        if (res.next()){
-            result = res.getInt("sum");
-        }else{
-            result = -1;
+        StringBuilder result = new StringBuilder();
+        if (!res.next()) {
+            result.append("You haven't taken the test yet");
+        } else {
+            result.append("Week ").append(res.getInt("week")).append(": ").append(res.getInt("result")).append("/7\n");
+            while (res.next()) {
+                result.append("Week ").append(res.getInt("week")).append(": ").append(res.getInt("result")).append("/7\n");
+            }
         }
 
-        return result;
+        return result.toString();
     }
-
 }

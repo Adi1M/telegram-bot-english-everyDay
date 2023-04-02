@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 
-public class NotifierService extends Thread{
+public class NotifierService extends Thread {
     private static NotifierService notifierService;
     private final PostgreSQLJDBS postgreSQLJDBS;
     private final String botUsername;
@@ -34,7 +34,7 @@ public class NotifierService extends Thread{
             int timeHour = 11;
             int timeMinute = 00;
 
-            long needms = timeHour*60*60*1000 + timeMinute*60*1000;
+            long needms = timeHour * 60 * 60 * 1000 + timeMinute * 60 * 1000;
             long curr = now.getLong(ChronoField.MILLI_OF_DAY);
 
             long diff = Math.abs(needms - curr);
@@ -42,7 +42,7 @@ public class NotifierService extends Thread{
             long timeToSLeep = 0;
 
             if (curr > needms) {
-                timeToSLeep = 24*60*60*1000 - diff;
+                timeToSLeep = 24 * 60 * 60 * 1000 - diff;
             } else {
                 timeToSLeep = diff;
 
@@ -50,15 +50,15 @@ public class NotifierService extends Thread{
             Thread.sleep(timeToSLeep);
 
             ArrayList<Long> chatIds = this.postgreSQLJDBS.getChatIds();
-            EnglishForEveryDayBot engBot = new EnglishForEveryDayBot(this.botUsername,this.botToken);
-            for(long chatId: chatIds) {
+            EnglishForEveryDayBot engBot = new EnglishForEveryDayBot(this.botUsername, this.botToken);
+            for (long chatId : chatIds) {
                 int day = this.postgreSQLJDBS.getUsersDay(chatId);
                 this.message.setChatId(chatId);
                 String[] words = this.postgreSQLJDBS.getWord(day);
                 this.message.setText(words[0] + " - " + words[1]);
                 engBot.execute(this.message);
 
-                this.postgreSQLJDBS.updateUsersDay(chatId,day+1);
+                this.postgreSQLJDBS.updateUsersDay(chatId, day + 1);
             }
         }
     }
