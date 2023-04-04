@@ -1,14 +1,16 @@
-public class Results {
-    PostgreSQLJDBS postgreSQLJDBS;
+import service.database.DatabaseService;
 
-    public Results() {
-        postgreSQLJDBS = PostgreSQLJDBS.getInstance();
+public class Results {
+    private final DatabaseService databaseService;
+
+    public Results(DatabaseService databaseService) {
+        this.databaseService = databaseService;
     }
 
     public String getLastResult(long chatId) {
-        int day = this.postgreSQLJDBS.getUsersDay(chatId);
+        int day = databaseService.getUserDay(chatId);
         int week = day / 7;
-        int userResult = postgreSQLJDBS.getLastTestResult(chatId, week - 1);
+        int userResult = databaseService.getLastTestResult(chatId, week - 1);
 
         if (userResult == -1) {
             return "You didn't take the test last week";
@@ -18,6 +20,6 @@ public class Results {
     }
 
     public String getTotalResult(long chatId){
-        return postgreSQLJDBS.getTotalResult(chatId);
+        return databaseService.getTotalResult(chatId);
     }
 }

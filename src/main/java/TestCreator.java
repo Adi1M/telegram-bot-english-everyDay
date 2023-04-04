@@ -1,24 +1,26 @@
+import service.database.DatabaseService;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class TestCreator {
-    private final PostgreSQLJDBS postgreSQLJDBS;
-    private List<String> answers;
-    private List<String> correctAnswers;
-    private List<String> wordsForQuestions;
-    private int days;
+    private final DatabaseService databaseService;
+    private final List<String> answers;
+    private final List<String> correctAnswers;
+    private final List<String> wordsForQuestions;
+    private final int days;
     private int index;
 
 
-    public TestCreator(long chatID) {
-        this.postgreSQLJDBS = PostgreSQLJDBS.getInstance();
+    public TestCreator(DatabaseService databaseService, long chatID) {
+        this.databaseService = databaseService;
         this.answers = new ArrayList<>();
         this.correctAnswers = new ArrayList<>();
         this.wordsForQuestions = new ArrayList<>();
-        this.days = postgreSQLJDBS.getUsersDay(chatID);
+        this.days = databaseService.getUserDay(chatID);
         for (int i = days - 6; i <= days; i++) {
-            String[] words = this.postgreSQLJDBS.getWord(i);
+            String[] words = databaseService.getWord(i);
             this.wordsForQuestions.add(words[1]);
             this.correctAnswers.add(words[0]);
         }
@@ -39,7 +41,7 @@ public class TestCreator {
         while (i < 2) {
             if (i == 1) random = random + 1;
             if (random != 0) {
-                String translate = this.postgreSQLJDBS.getWord(random)[0];
+                String translate = databaseService.getWord(random)[0];
                 if (!translate.equals(correctAnswer)) {
                     this.answers.add(translate);
                     i++;

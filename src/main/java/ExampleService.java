@@ -1,29 +1,27 @@
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.bots.AbsSender;
+import service.database.DatabaseService;
 
 public class ExampleService {
+    private final AbsSender sender;
     private final long chatId;
-    private final PostgreSQLJDBS jdbs;
+    private final DatabaseService databaseService;
     private final SendMessage message;
-    private final String botUsername;
-    private final EnglishForEveryDayBot engBot;
-    private final String botToken;
 
-    ExampleService(String botUsername, String botToken, long chatId) {
+    public ExampleService(AbsSender sender, long chatId, DatabaseService databaseService) {
         this.chatId = chatId;
-        this.jdbs = PostgreSQLJDBS.getInstance();
+        this.databaseService = databaseService;
         this.message = new SendMessage();
-        this.botUsername = botUsername;
-        this.botToken = botToken;
-        this.engBot = new EnglishForEveryDayBot(this.botUsername, this.botToken);
+        this.sender = sender;
     }
 
     @SneakyThrows
     public void getExample() {
-        int day = this.jdbs.getUsersDay(chatId);
-        String example = this.jdbs.getExample(day);
-        this.message.setChatId(this.chatId);
-        this.message.setText(example);
-        this.engBot.execute(this.message);
+        int day = databaseService.getUserDay(chatId);
+        String example = databaseService.getExample(day);
+        message.setChatId(chatId);
+        message.setText(example);
+        sender.execute(message);
     }
 }
