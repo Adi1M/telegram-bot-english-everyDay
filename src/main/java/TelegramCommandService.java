@@ -1,23 +1,23 @@
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import service.database.DatabaseService;
 
 public class TelegramCommandService {
-    private final String botUsername;
-    private final String botToken;
-    private final EnglishForEveryDayBot engBot;
+    private final DatabaseService databaseService;
+    private final AbsSender sender;
     private final SendMessage message;
     private final Results results;
 
-    TelegramCommandService(String botUsername, String botToken, EnglishForEveryDayBot engBot) {
-        this.botUsername = botUsername;
-        this.botToken = botToken;
-        this.engBot = engBot;
+    TelegramCommandService(AbsSender sender, DatabaseService databaseService) {
+        this.sender = sender;
+        this.databaseService = databaseService;
         this.message = new SendMessage();
-        results = new Results();
+        results = new Results(databaseService);
     }
 
     public void start(long chatId) {
-        Registration reg = new Registration();
+        Registration reg = new Registration(databaseService);
         if (!reg.checkUser(chatId)) {
             sendMessage(reg.text, chatId);
             reg.insertInDB(chatId);
@@ -25,12 +25,12 @@ public class TelegramCommandService {
     }
 
     public void test(long chatId) {
-        TestExecute testExecute = new TestExecute(botUsername, botToken, chatId);
+        TestExecute testExecute = new TestExecute(sender, databaseService, chatId);
         testExecute.start();
     }
 
     public void example(long chatId) {
-        ExampleService exampleService = new ExampleService(botUsername, botToken, chatId);
+        ExampleService exampleService = new ExampleService(sender, chatId, databaseService);
         exampleService.getExample();
     }
 
@@ -47,7 +47,7 @@ public class TelegramCommandService {
         message.setText(messageText);
 
         try {
-            engBot.execute(message);
+            sender.execute(message);
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }

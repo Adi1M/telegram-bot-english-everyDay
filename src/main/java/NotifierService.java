@@ -1,27 +1,30 @@
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.bots.AbsSender;
+import service.database.DatabaseService;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
-import java.util.ArrayList;
+import java.util.List;
 
 public class NotifierService extends Thread {
     private static NotifierService notifierService;
-    private final PostgreSQLJDBS postgreSQLJDBS;
-    private final String botUsername;
-    private final String botToken;
+    private final DatabaseService databaseService;
+    private final AbsSender sender;
     private final SendMessage message;
 
-    private NotifierService(String botUsername, String botToken) {
+    private NotifierService(AbsSender sender, DatabaseService databaseService) {
         this.message = new SendMessage();
-        this.postgreSQLJDBS = PostgreSQLJDBS.getInstance();
-        this.botUsername = botUsername;
-        this.botToken = botToken;
+        this.databaseService = databaseService;
+        this.sender = sender;
     }
 
-    public static NotifierService getInstance(String botToken, String botUsername) {
-        if (notifierService == null) return new NotifierService(botToken, botUsername);
-        else return notifierService;
+    public static NotifierService getInstance(AbsSender sender,
+                                              DatabaseService databaseService) {
+        if (notifierService == null)
+            return notifierService = new NotifierService(sender, databaseService);
+        else
+            return notifierService;
     }
 
     @SneakyThrows
@@ -49,16 +52,15 @@ public class NotifierService extends Thread {
             }
             Thread.sleep(timeToSLeep);
 
-            ArrayList<Long> chatIds = this.postgreSQLJDBS.getChatIds();
-            EnglishForEveryDayBot engBot = new EnglishForEveryDayBot(this.botUsername, this.botToken);
+            List<Long> chatIds = databaseService.getChatIdList();
             for (long chatId : chatIds) {
-                int day = this.postgreSQLJDBS.getUsersDay(chatId);
-                this.message.setChatId(chatId);
-                String[] words = this.postgreSQLJDBS.getWord(day);
-                this.message.setText(words[0] + " - " + words[1]);
-                engBot.execute(this.message);
+                int day = databaseService.getUserDay(chatId);
+                message.setChatId(chatId);
+                String[] words = databaseService.getWord(day);
+                message.setText(words[0] + " - " + words[1]);
+                sender.execute(this.message);
 
-                this.postgreSQLJDBS.updateUsersDay(chatId, day + 1);
+                databaseService.updateUsersDay(chatId, day + 1);
             }
         }
     }

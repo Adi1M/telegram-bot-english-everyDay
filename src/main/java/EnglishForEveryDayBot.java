@@ -2,16 +2,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import service.database.DatabaseService;
 
 @Slf4j
 public class EnglishForEveryDayBot extends TelegramLongPollingBot {
     private final String botUsername;
     private final String botToken;
+    private final DatabaseService databaseService;
     SendMessage message;
 
-    public EnglishForEveryDayBot(String botUsername, String botToken) {
+    public EnglishForEveryDayBot(String botUsername, String botToken,
+                                 DatabaseService databaseService) {
         this.botToken = botToken;
         this.botUsername = botUsername;
+        this.databaseService = databaseService;
         this.message = new SendMessage();
     }
 
@@ -27,7 +31,9 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        TelegramCommandService commands = new TelegramCommandService(botUsername, botToken, new EnglishForEveryDayBot(botUsername, botToken));
+        TelegramCommandService commands = new TelegramCommandService(
+                this, databaseService
+        );
         if (update.hasMessage() && update.getMessage().hasText()) {
             String messageFromUser = update.getMessage().getText();
             if (!messageFromUser.contains("->")) {
@@ -42,7 +48,8 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
                 }
             }
         } else if (update.hasCallbackQuery()) {
-            ReceivingAnswer receivingAnsFromPoll = new ReceivingAnswer(update.getCallbackQuery().getMessage().getChatId(), botUsername, botToken);
+            Long chatId = update.getCallbackQuery().getMessage().getChatId();
+            ReceivingAnswer receivingAnsFromPoll = new ReceivingAnswer(chatId, this, databaseService);
             receivingAnsFromPoll.getResultOfAnswer(update.getCallbackQuery().getData());
         }
     }

@@ -1,13 +1,16 @@
 import lombok.SneakyThrows;
+import service.database.DatabaseService;
 
 import java.io.InputStream;
 import java.util.Properties;
 
 public class Registration {
+    DatabaseService databaseService;
     String text;
 
     @SneakyThrows
-    Registration() {
+    Registration(DatabaseService databaseService) {
+        this.databaseService = databaseService;
         Properties properties = getProperties();
         this.text = properties.getProperty("welcomeText");
     }
@@ -21,10 +24,10 @@ public class Registration {
     }
 
     public void insertInDB(long chatId) {
-        PostgreSQLJDBS.getInstance().insertUser(chatId);
+        databaseService.createUser(chatId);
     }
 
     public boolean checkUser(long chatId) {
-        return PostgreSQLJDBS.getInstance().checkUser(chatId);
+        return databaseService.checkUser(chatId);
     }
 }
