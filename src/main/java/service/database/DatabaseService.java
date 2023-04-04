@@ -1,8 +1,8 @@
 package service.database;
 
-import service.EnglishService;
-import service.EnglishTestService;
-import service.UserService;
+import repository.EnglishRepository;
+import repository.EnglishTestRepository;
+import repository.UserRepository;
 
-public interface DatabaseService extends UserService, EnglishService, EnglishTestService {
+public interface DatabaseService extends UserRepository, EnglishRepository, EnglishTestRepository {
 }

@@ -1,6 +1,6 @@
-package service;
+package repository;
 
-public interface EnglishService {
+public interface EnglishRepository {
 
   //TODO Refactor return to Map<String, String>
   String[] getWord(int day);

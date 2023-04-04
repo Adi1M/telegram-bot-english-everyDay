@@ -1,8 +1,8 @@
-package service;
+package repository;
 
 import java.util.List;
 
-public interface UserService {
+public interface UserRepository {
 
   void createUser(long userId);
 

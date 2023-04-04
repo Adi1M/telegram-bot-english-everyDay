@@ -1,3 +1,5 @@
+package pojo;
+
 import service.database.DatabaseService;
 
 import java.util.ArrayList;

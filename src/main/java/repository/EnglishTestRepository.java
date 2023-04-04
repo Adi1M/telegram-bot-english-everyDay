@@ -1,6 +1,6 @@
-package service;
+package repository;
 
-public interface EnglishTestService {
+public interface EnglishTestRepository {
 
   void updateResults(long userId, int week);
 

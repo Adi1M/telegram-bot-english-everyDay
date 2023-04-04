@@ -1,3 +1,5 @@
+package service;
+
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -7,6 +9,8 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.util.List;
 
+//FIXME need use ExecutorService Java
+// @see: https://www.baeldung.com/java-executor-service-tutorial
 public class NotifierService extends Thread {
     private static NotifierService notifierService;
     private final DatabaseService databaseService;

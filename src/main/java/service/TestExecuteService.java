@@ -1,22 +1,25 @@
+package service;
+
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import pojo.TestCreator;
 import service.database.DatabaseService;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestExecute extends Thread {
+public class TestExecuteService extends Thread {
     private final DatabaseService databaseService;
     private final long chatId;
     private final AbsSender sender;
     private final TestCreator test;
     private final SendMessage message;
 
-    TestExecute(AbsSender sender, DatabaseService databaseService, long chatId) {
+    TestExecuteService(AbsSender sender, DatabaseService databaseService, long chatId) {
         this.test = new TestCreator(databaseService, chatId);
         this.sender = sender;
         this.databaseService = databaseService;
