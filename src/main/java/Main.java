@@ -14,14 +14,17 @@ import java.util.Properties;
 
 public class Main {
     public static void main(String[] args) throws IOException, TelegramApiException, DatabaseException {
-        Properties botProperties = getPropertiesByName("telegram_bot_conf.properties");
-        Properties databaseProperties = getPropertiesByName("database.properties");
+        Properties applicationProperties = getApplicationProperties();
 
-        String botUsername = botProperties.getProperty("bot.username");
-        String botToken = botProperties.getProperty("bot.token");
+        String botUsername = applicationProperties.getProperty("bot.username");
+        String botToken = applicationProperties.getProperty("bot.token");
+
+        if (botToken.isBlank() || botUsername.isBlank()) {
+            throw new NullPointerException("Telegram bot token or username is blank.");
+        }
 
         DatabaseService databaseService = new DatabaseServiceImpl(
-                PostgresConnector.getInstance(databaseProperties));
+                PostgresConnector.getInstance(applicationProperties));
 
         EnglishForEveryDayBot bot = new EnglishForEveryDayBot(botUsername, botToken, databaseService);
 
@@ -31,8 +34,9 @@ public class Main {
         NotifierService.getInstance(bot, databaseService).start();
     }
 
-    private static Properties getPropertiesByName(String name) throws IOException {
-        InputStream inputStream = Main.class.getClassLoader().getResourceAsStream(name);
+    private static Properties getApplicationProperties() throws IOException {
+        InputStream inputStream = Main.class.getClassLoader()
+                .getResourceAsStream("application.properties");
         Properties properties = new Properties();
         properties.load(inputStream);
 

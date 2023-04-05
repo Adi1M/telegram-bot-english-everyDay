@@ -8,6 +8,7 @@ import service.database.DatabaseService;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.util.List;
+import java.util.Objects;
 
 //FIXME need use ExecutorService Java
 // @see: https://www.baeldung.com/java-executor-service-tutorial
@@ -25,10 +26,8 @@ public class NotifierService extends Thread {
 
     public static NotifierService getInstance(AbsSender sender,
                                               DatabaseService databaseService) {
-        if (notifierService == null)
-            return notifierService = new NotifierService(sender, databaseService);
-        else
-            return notifierService;
+        return Objects.requireNonNullElseGet(notifierService,
+                () -> notifierService = new NotifierService(sender, databaseService));
     }
 
     @SneakyThrows
