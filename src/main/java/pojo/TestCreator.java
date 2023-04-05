@@ -21,6 +21,8 @@ public class TestCreator {
         this.correctAnswers = new ArrayList<>();
         this.wordsForQuestions = new ArrayList<>();
         this.days = databaseService.getUserDay(chatID);
+        //FIXME send error when user come firstly
+        // like 1 day - 6 = -5
         for (int i = days - 6; i <= days; i++) {
             String[] words = databaseService.getWord(i);
             this.wordsForQuestions.add(words[1]);

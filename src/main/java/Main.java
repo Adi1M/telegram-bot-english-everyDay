@@ -31,7 +31,7 @@ public class Main {
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
         telegramBotsApi.registerBot(bot);
 
-        NotifierService.getInstance(bot, databaseService).start();
+        NotifierService.getInstance(bot, databaseService, applicationProperties).start();
     }
 
     private static Properties getApplicationProperties() throws IOException {

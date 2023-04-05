@@ -8,63 +8,88 @@ import service.database.DatabaseService;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-//FIXME need use ExecutorService Java
-// @see: https://www.baeldung.com/java-executor-service-tutorial
-public class NotifierService extends Thread {
+
+public class NotifierService implements Runnable {
+    private static final int DEFAULT_TIME_HOUR = 11; // 11
+    private static final int DEFAULT_TIME_MINUTE = 0; // 00
+    private static final long FORMULA_HOUR_IN_MILLIS = 60 * 60 * 1000;
+    private static final long FORMULA_MINUTE_IN_MILLIS = 60 * 1000;
     private static NotifierService notifierService;
     private final DatabaseService databaseService;
     private final AbsSender sender;
-    private final SendMessage message;
 
-    private NotifierService(AbsSender sender, DatabaseService databaseService) {
-        this.message = new SendMessage();
+    private final Integer hour;
+    private final Integer minute;
+
+
+    private NotifierService(AbsSender sender, DatabaseService databaseService,
+                            Properties applicationProperties) {
         this.databaseService = databaseService;
         this.sender = sender;
+        String sHour = applicationProperties.getProperty("notifier.hour");
+        String sMinute = applicationProperties.getProperty("notifier.minute");
+        if (sHour == null || sMinute == null
+                || sHour.isBlank() || sMinute.isBlank()) {
+            this.hour = DEFAULT_TIME_HOUR;
+            this.minute = DEFAULT_TIME_MINUTE;
+        } else {
+            this.hour = Integer.parseInt(applicationProperties.getProperty("notifier.hour"));
+            this.minute = Integer.parseInt(applicationProperties.getProperty("notifier.minute"));
+        }
     }
 
     public static NotifierService getInstance(AbsSender sender,
-                                              DatabaseService databaseService) {
+                                              DatabaseService databaseService,
+                                              Properties applicationProperties) {
         return Objects.requireNonNullElseGet(notifierService,
-                () -> notifierService = new NotifierService(sender, databaseService));
+                () -> notifierService = new NotifierService(
+                        sender, databaseService, applicationProperties));
+    }
+
+
+    public void start() {
+        ScheduledExecutorService executorService = Executors.
+                newSingleThreadScheduledExecutor();
+        LocalDateTime now = LocalDateTime.now();
+        final long dayInMillis = 24 * FORMULA_HOUR_IN_MILLIS;
+
+        long needMILLIS = (hour * FORMULA_HOUR_IN_MILLIS)
+                + (minute * FORMULA_MINUTE_IN_MILLIS);
+
+        long currentDayInMillis = now.getLong(ChronoField.MILLI_OF_DAY);
+
+        //todo need check case when time will be before and after current date
+        long diff = Math.abs(needMILLIS - currentDayInMillis);
+
+        long initDelayInMillis = currentDayInMillis > needMILLIS ?
+                dayInMillis - diff : diff;
+
+        executorService.scheduleAtFixedRate(
+                this,
+                initDelayInMillis,
+                dayInMillis,
+                TimeUnit.MILLISECONDS
+        );
     }
 
     @SneakyThrows
     @Override
     public void run() {
+        List<Map<String, Object>> userList = databaseService.getAllUsersWithDayAndWord();
+        for (Map<String, Object> user : userList) {
+            int day = (Integer) (user.get("day"));
+            int userId = (Integer) (user.get("userId"));
+            String text = String.format("%s - %s", user.get("english"), user.get("translation"));
 
-        while (true) {
-            LocalDateTime now = LocalDateTime.now();
-
-            int timeHour = 11;
-            int timeMinute = 00;
-
-            long needms = timeHour * 60 * 60 * 1000 + timeMinute * 60 * 1000;
-            long curr = now.getLong(ChronoField.MILLI_OF_DAY);
-
-            long diff = Math.abs(needms - curr);
-
-            long timeToSLeep = 0;
-
-            if (curr > needms) {
-                timeToSLeep = 24 * 60 * 60 * 1000 - diff;
-            } else {
-                timeToSLeep = diff;
-
-            }
-            Thread.sleep(timeToSLeep);
-
-            List<Long> chatIds = databaseService.getChatIdList();
-            for (long chatId : chatIds) {
-                int day = databaseService.getUserDay(chatId);
-                message.setChatId(chatId);
-                String[] words = databaseService.getWord(day);
-                message.setText(words[0] + " - " + words[1]);
-                sender.execute(this.message);
-
-                databaseService.updateUsersDay(chatId, day + 1);
-            }
+            sender.executeAsync(new SendMessage(String.valueOf(userId), text));
+            databaseService.updateUsersDay(userId, day + 1);
         }
     }
 }

@@ -7,8 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 public class DatabaseServiceImpl implements DatabaseService {
@@ -58,6 +57,30 @@ public class DatabaseServiceImpl implements DatabaseService {
             statement.setLong(2, userId);
 
             statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllUsersWithDayAndWord() {
+        String selectQuery = """
+            select tu.chatid, tu.day, ew.english, ew.translation
+            from telegram.users tu
+            left join english.words ew on tu.day = ew.id
+            """;
+        try (Statement statement = connector.getConnection().createStatement()) {
+            ResultSet rs = statement.executeQuery(selectQuery);
+            List<Map<String, Object>> result = new LinkedList<>();
+            while (rs.next()) {
+                Map<String, Object> o = new HashMap<>();
+                o.put("userId", rs.getLong("chatid"));
+                o.put("day", rs.getInt("day"));
+                o.put("english", rs.getString("english"));
+                o.put("translation", rs.getInt("translation"));
+                result.add(o);
+            }
+            return result;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -205,20 +228,5 @@ public class DatabaseServiceImpl implements DatabaseService {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public List<Long> getChatIdList() {
-        final String selectQuery = "SELECT chatid from telegram.users";
-        ArrayList<Long> idList = new ArrayList<>();
-        try (Statement statement = connector.getConnection().createStatement()) {
-            ResultSet rs = statement.executeQuery(selectQuery);
-            while (rs.next()) {
-                idList.add((long) rs.getInt("chatid"));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return idList;
     }
 }
