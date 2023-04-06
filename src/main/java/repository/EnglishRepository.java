@@ -1,12 +1,14 @@
 package repository;
 
+import enums.LangTemplate;
+
 import java.util.List;
 import java.util.Map;
 
 public interface EnglishRepository {
+  Map<LangTemplate, String> getWord(int day);
 
-  //TODO Refactor return to Map<String, String>
-  String[] getWord(int day);
+  List<Map<LangTemplate, String>> getWordWithRange(int day, int range);
 
   int getUserDay(long userId);
 

@@ -1,6 +1,7 @@
 package service.database;
 
 import connector.PostgresConnector;
+import enums.LangTemplate;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.PreparedStatement;
@@ -18,18 +19,52 @@ public class DatabaseServiceImpl implements DatabaseService {
     }
 
     @Override
-    public String[] getWord(int day) {
+    public Map<LangTemplate, String> getWord(int day) {
         final String sql = "SELECT english, translation FROM english.words WHERE id = ?";
 
         try (PreparedStatement statement = connector.getConnection().prepareStatement(sql)) {
             statement.setInt(1, day);
             ResultSet rs = statement.executeQuery();
-            if (rs.next())
-                return new String[]{rs.getString("english"), rs.getString("translation")};
+            Map<LangTemplate, String> result = new HashMap<>();
+            if (rs.next()) {
+                result.put(LangTemplate.WORD, rs.getString("english"));
+                result.put(LangTemplate.TARGET, rs.getString("translation"));
+                return result;
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    @Override
+    public List<Map<LangTemplate, String>> getWordWithRange(int day, int range) {
+        final String sql = """
+                SELECT english, translation
+                FROM english.words
+                WHERE id >= ? and id < (? + ?)
+                """;
+        try (PreparedStatement statement = connector.getConnection().prepareStatement(sql)) {
+            statement.setInt(1, day);
+            statement.setInt(2, day);
+            statement.setInt(3, range);
+
+            ResultSet rs = statement.executeQuery();
+            List<Map<LangTemplate, String>> result = new ArrayList<>(range);
+            Map<LangTemplate, String> wordMap;
+            while (rs.next()) {
+                wordMap = new HashMap<>();
+                String word = rs.getString("english");
+                String translation = rs.getString("translation");
+
+                wordMap.put(LangTemplate.WORD, word);
+                wordMap.put(LangTemplate.TARGET, translation);
+                result.add(wordMap);
+            }
+            return result;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -65,10 +100,10 @@ public class DatabaseServiceImpl implements DatabaseService {
     @Override
     public List<Map<String, Object>> getAllUsersWithDayAndWord() {
         String selectQuery = """
-            select tu.chatid, tu.day, ew.english, ew.translation
-            from telegram.users tu
-            left join english.words ew on tu.day = ew.id
-            """;
+                select tu.chatid, tu.day, ew.english, ew.translation
+                from telegram.users tu
+                left join english.words ew on tu.day = ew.id
+                """;
         try (Statement statement = connector.getConnection().createStatement()) {
             ResultSet rs = statement.executeQuery(selectQuery);
             List<Map<String, Object>> result = new LinkedList<>();
@@ -197,7 +232,11 @@ public class DatabaseServiceImpl implements DatabaseService {
                         .append(res.getInt("result"))
                         .append("/7\n");
                 while (res.next()) {
-                    result.append("Week ").append(res.getInt("week")).append(": ").append(res.getInt("result")).append("/7\n");
+                    result.append("Week ")
+                            .append(res.getInt("week"))
+                            .append(": ")
+                            .append(res.getInt("result"))
+                            .append("/7\n");
                 }
             }
             return result.toString();

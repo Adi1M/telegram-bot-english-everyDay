@@ -1,6 +1,5 @@
 package service;
 
-import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -12,59 +11,40 @@ import service.database.DatabaseService;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestExecuteService extends Thread {
+public class EnglishTestExecuteService {
     private final DatabaseService databaseService;
-    private final long chatId;
     private final AbsSender sender;
-    private final TestCreator test;
-    private final SendMessage message;
 
-    TestExecuteService(AbsSender sender, DatabaseService databaseService, long chatId) {
-        this.test = new TestCreator(databaseService, chatId);
+    EnglishTestExecuteService(AbsSender sender, DatabaseService databaseService) {
         this.sender = sender;
         this.databaseService = databaseService;
-        this.message = new SendMessage();
-        this.chatId = chatId;
     }
 
-    @SneakyThrows
-    @Override
-    public void run() {
-        int week = databaseService.getUserDay(this.chatId) / 7;
-        if (!this.test.isItRightDay()) {
-            this.message.setText("Today is not for tests just chill!");
-            this.message.setChatId(chatId);
-            try {
-                sender.execute(this.message);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else if (databaseService.hasTested(this.chatId, week)) {
-            this.message.setText("You have tested!");
-            this.message.setChatId(chatId);
-            try {
-                sender.execute(this.message);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+    public void foo(long chatId) {
+        TestCreator test = new TestCreator(databaseService, chatId);
+        String text = "";
+        int week = databaseService.getUserDay(chatId) / 7;
+        if (!test.isItRightDay()) {
+            text = "Today is not for tests just chill!";
+        } else if (databaseService.hasTested(chatId, week)) {
+            text = "You have tested!";
         } else {
-            databaseService.createResult(this.chatId, week);
+            databaseService.createResult(chatId, week);
             for (int i = 1; i <= 8; i++) {
                 if (i < 8) {
-                    sendInlineKeyboard(i, this.chatId, this.test.getQuestion(i - 1), this.test.getAnswers(i - 1));
+                    sendInlineKeyboard(i, chatId,
+                            test.getQuestion(i - 1),
+                            test.getAnswers(i - 1));
                 } else {
-                    this.message.setChatId(this.chatId);
-                    this.message.setText("Test is over! Thank you!");
-                    try {
-                        sender.execute(this.message);
-                    } catch (TelegramApiException e) {
-                        e.printStackTrace();
-                    }
+                    text = "Test is over! Thank you!";
                 }
-                Thread.sleep(10 * 1000);
             }
         }
-
+        try {
+            sender.execute(new SendMessage(String.valueOf(chatId), text));
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void sendInlineKeyboard(int index, long chatId, String question, List<String> answers) {

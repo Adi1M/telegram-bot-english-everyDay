@@ -33,8 +33,8 @@ public class TelegramCommandService {
     }
 
     public void test(long chatId) {
-        TestExecuteService testExecute = new TestExecuteService(sender, databaseService, chatId);
-        testExecute.start();
+        EnglishTestExecuteService testExecute = new EnglishTestExecuteService(sender, databaseService);
+        testExecute.foo(chatId);
     }
 
     public void example(long chatId) {

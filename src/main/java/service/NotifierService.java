@@ -3,6 +3,7 @@ package service;
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import repository.EnglishRepository;
 import service.database.DatabaseService;
 
 import java.time.LocalDateTime;
@@ -22,16 +23,16 @@ public class NotifierService implements Runnable {
     private static final long FORMULA_HOUR_IN_MILLIS = 60 * 60 * 1000;
     private static final long FORMULA_MINUTE_IN_MILLIS = 60 * 1000;
     private static NotifierService notifierService;
-    private final DatabaseService databaseService;
+    private final EnglishRepository englishRepository;
     private final AbsSender sender;
 
     private final Integer hour;
     private final Integer minute;
 
 
-    private NotifierService(AbsSender sender, DatabaseService databaseService,
+    private NotifierService(AbsSender sender, EnglishRepository englishRepository,
                             Properties applicationProperties) {
-        this.databaseService = databaseService;
+        this.englishRepository = englishRepository;
         this.sender = sender;
         String sHour = applicationProperties.getProperty("notifier.hour");
         String sMinute = applicationProperties.getProperty("notifier.minute");
@@ -82,14 +83,14 @@ public class NotifierService implements Runnable {
     @SneakyThrows
     @Override
     public void run() {
-        List<Map<String, Object>> userList = databaseService.getAllUsersWithDayAndWord();
+        List<Map<String, Object>> userList = englishRepository.getAllUsersWithDayAndWord();
         for (Map<String, Object> user : userList) {
             int day = (Integer) (user.get("day"));
             int userId = (Integer) (user.get("userId"));
             String text = String.format("%s - %s", user.get("english"), user.get("translation"));
 
             sender.executeAsync(new SendMessage(String.valueOf(userId), text));
-            databaseService.updateUsersDay(userId, day + 1);
+            englishRepository.updateUsersDay(userId, day + 1);
         }
     }
 }
