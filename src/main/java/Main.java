@@ -1,6 +1,6 @@
 import bot.EnglishForEveryDayBot;
-import connector.PostgresConnector;
-import exception.DatabaseException;
+import utils.connector.PostgresConnector;
+import service.database.DatabaseException;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;

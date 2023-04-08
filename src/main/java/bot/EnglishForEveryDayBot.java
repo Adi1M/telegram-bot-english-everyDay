@@ -1,19 +1,20 @@
 package bot;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import service.englishtest.EnglishTestService;
-import service.englishtest.EnglishTestServiceImpl;
-import service.TelegramCommandService;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import service.database.DatabaseService;
+import telegram.TelegramCommandService;
+import service.languagetest.TelegramLanguageTestServiceImpl;
 
 @Slf4j
 public class EnglishForEveryDayBot extends TelegramLongPollingBot {
     private final String botUsername;
     private final String botToken;
-    private final EnglishTestService englishTestService;
+    private final TelegramLanguageTestServiceImpl englishTestService;
     private final TelegramCommandService commands;
     SendMessage message;
 
@@ -22,7 +23,7 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
         this.botToken = botToken;
         this.botUsername = botUsername;
         this.message = new SendMessage();
-        this.englishTestService = new EnglishTestServiceImpl(databaseService, this);
+        this.englishTestService = TelegramLanguageTestServiceImpl.getInstance(databaseService, this);
         this.commands = new TelegramCommandService(this, databaseService);
     }
 
@@ -36,6 +37,7 @@ public class EnglishForEveryDayBot extends TelegramLongPollingBot {
         return botToken;
     }
 
+    @SneakyThrows(TelegramApiException.class)
     @Override
     public void onUpdateReceived(Update update) {
 

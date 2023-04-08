@@ -3,7 +3,7 @@ package service;
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.bots.AbsSender;
-import repository.EnglishRepository;
+import repository.LanguageRepository;
 import service.database.DatabaseService;
 
 import java.time.LocalDateTime;
@@ -23,16 +23,16 @@ public class NotifierService implements Runnable {
     private static final long FORMULA_HOUR_IN_MILLIS = 60 * 60 * 1000;
     private static final long FORMULA_MINUTE_IN_MILLIS = 60 * 1000;
     private static NotifierService notifierService;
-    private final EnglishRepository englishRepository;
+    private final LanguageRepository languageRepository;
     private final AbsSender sender;
 
     private final Integer hour;
     private final Integer minute;
 
 
-    private NotifierService(AbsSender sender, EnglishRepository englishRepository,
+    private NotifierService(AbsSender sender, LanguageRepository languageRepository,
                             Properties applicationProperties) {
-        this.englishRepository = englishRepository;
+        this.languageRepository = languageRepository;
         this.sender = sender;
         String sHour = applicationProperties.getProperty("notifier.hour");
         String sMinute = applicationProperties.getProperty("notifier.minute");
@@ -83,14 +83,14 @@ public class NotifierService implements Runnable {
     @SneakyThrows
     @Override
     public void run() {
-        List<Map<String, Object>> userList = englishRepository.getAllUsersWithDayAndWord();
+        List<Map<String, Object>> userList = languageRepository.getAllUsersWithDayAndWord();
         for (Map<String, Object> user : userList) {
             int day = (Integer) (user.get("day"));
             int userId = (Integer) (user.get("userId"));
             String text = String.format("%s - %s", user.get("english"), user.get("translation"));
 
             sender.executeAsync(new SendMessage(String.valueOf(userId), text));
-            englishRepository.updateUsersDay(userId, day + 1);
+            languageRepository.updateUsersDay(userId, day + 1);
         }
     }
 }

@@ -1,6 +1,6 @@
-package connector;
+package utils.connector;
 
-import exception.DatabaseException;
+import service.database.DatabaseException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

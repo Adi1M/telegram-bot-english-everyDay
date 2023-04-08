@@ -5,10 +5,10 @@ import enums.LangTemplate;
 import java.util.List;
 import java.util.Map;
 
-public interface EnglishRepository {
+public interface LanguageRepository {
   Map<LangTemplate, String> getWord(int day);
 
-  List<Map<LangTemplate, String>> getWordWithRange(int day, int range);
+  List<Map<LangTemplate, String>> getWordWithRange(Long userId, int range);
 
   int getUserDay(long userId);
 

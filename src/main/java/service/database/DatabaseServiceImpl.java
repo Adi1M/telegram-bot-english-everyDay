@@ -1,6 +1,6 @@
 package service.database;
 
-import connector.PostgresConnector;
+import utils.connector.PostgresConnector;
 import enums.LangTemplate;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,15 +38,19 @@ public class DatabaseServiceImpl implements DatabaseService {
     }
 
     @Override
-    public List<Map<LangTemplate, String>> getWordWithRange(int day, int range) {
+    public List<Map<LangTemplate, String>> getWordWithRange(Long userId, int range) {
         final String sql = """
-                SELECT english, translation
-                FROM english.words
-                WHERE id >= ? and id < (? + ?)
+                SELECT ew.english, ew.translation, ew.examples
+                FROM english.words ew
+                         inner join telegram.users tu on ew.id >= tu.day
+                WHERE id >= tu.day
+                  and id < (tu.day + ?)
+                  and tu.chatid = ?
+                limit ?;
                 """;
         try (PreparedStatement statement = connector.getConnection().prepareStatement(sql)) {
-            statement.setInt(1, day);
-            statement.setInt(2, day);
+            statement.setInt(1, range);
+            statement.setLong(2, userId);
             statement.setInt(3, range);
 
             ResultSet rs = statement.executeQuery();
@@ -56,9 +60,11 @@ public class DatabaseServiceImpl implements DatabaseService {
                 wordMap = new HashMap<>();
                 String word = rs.getString("english");
                 String translation = rs.getString("translation");
+                String examples = rs.getString("examples");
 
                 wordMap.put(LangTemplate.WORD, word);
                 wordMap.put(LangTemplate.TARGET, translation);
+                wordMap.put(LangTemplate.EXAMPLE, examples);
                 result.add(wordMap);
             }
             return result;
@@ -182,8 +188,13 @@ public class DatabaseServiceImpl implements DatabaseService {
     }
 
     @Override
-    public String getExample(long userId) {
-        final String selectQuery = "SELECT * FROM english.words WHERE id = ?";
+    public String getExampleByDay(long userId) {
+        final String selectQuery = """
+                select ew.*
+                from english.words ew
+                left join telegram.users tu on tu.day = ew.id
+                where ew.id = ?;
+                """;
         try (PreparedStatement statement = connector.getConnection().prepareStatement(selectQuery)) {
             statement.setLong(1, getUserDay(userId));
 

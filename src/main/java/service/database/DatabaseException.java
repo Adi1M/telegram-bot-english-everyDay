@@ -1,4 +1,4 @@
-package exception;
+package service.database;
 
 public class DatabaseException extends Throwable {
 

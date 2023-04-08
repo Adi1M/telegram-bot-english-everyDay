@@ -8,7 +8,7 @@ public interface EnglishTestRepository {
 
   boolean hasTested(long userId, int week);
 
-  String getExample(long userId);
+  String getExampleByDay(long userId);
 
   int getLastTestResult(long userId, int week);
 
