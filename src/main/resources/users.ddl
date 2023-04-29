@@ -1,4 +1,5 @@
 create table users(
-    usersId int not null primary key,
-    userName varchar(255)
+    chatid int not null primary key ,
+    day int,
+    status boolean
 );
